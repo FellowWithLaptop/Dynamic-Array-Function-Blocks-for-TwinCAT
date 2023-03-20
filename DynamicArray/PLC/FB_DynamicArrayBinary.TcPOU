@@ -1,0 +1,208 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="FB_DynamicArrayBinary" Id="{bd038ba7-a1bc-47e2-9ed6-417afa2273f3}" SpecialFunc="None">
+    <Declaration><![CDATA[{attribute 'no_explicit_call' := 'This FB is a CLASS and must be accessed using methods or properties'}
+{attribute 'enable_dynamic_creation'}
+{attribute 'hide_all_locals'}
+FUNCTION_BLOCK FB_DynamicArrayBinary
+VAR
+	buffer : FB_JsonDynDomParser;
+	root : sJsonValue;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Folder Name="Private" Id="{609a49c3-0e57-48e1-8f47-660d6b5240b9}" />
+    <Property Name="_Array" Id="{2d9b35e8-084d-4a2e-8508-99686a3ca39a}" FolderPath="Private\">
+      <Declaration><![CDATA[PROPERTY PRIVATE _Array : sJsonValue]]></Declaration>
+      <Get Name="Get" Id="{cddee576-1903-4125-8185-8bb15cadbfa7}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF root <> 0 THEN
+	_Array := root;
+ELSE
+	root := buffer.NewDocument();
+	_Array := buffer.SetArray(root,0);
+END_IF
+
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="AddLast" Id="{e7ce70d9-3b07-44f5-91dd-2c74abe4909a}">
+      <Declaration><![CDATA[METHOD PUBLIC AddLast : BOOL
+VAR_INPUT
+	Value : ANY;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[AddLast := buffer.PushbackHexBinaryValue(v:= _Array, p := Value.pValue,n := Value.diSize) <> 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="AddStringLast" Id="{d4c3b84b-444d-48f7-aae9-b19405fd164a}">
+      <Declaration><![CDATA[METHOD PUBLIC AddStringLast : BOOL
+VAR_INPUT
+	Value : ANY_STRING;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[AddStringLast := buffer.PushbackHexBinaryValue(v:= _Array, p := Value.pValue,n := TO_DINT(LEN2(Value.pValue)+ 1)) <> 0;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Clear" Id="{2eee8e88-e6c2-42cf-ac7b-53a97395f9e3}">
+      <Declaration><![CDATA[METHOD PUBLIC Clear : BOOL
+VAR
+	_arrayElement : SJsonAIterator;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[_arrayElement := buffer.ArrayBegin(_array);
+IF _arrayElement <> 0 THEN
+	Clear := buffer.ClearArray(v := _array,i := _arrayElement);
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CopyArrayString" Id="{50b91631-6b52-4f36-a2a0-7b0f76fb1c7a}">
+      <Declaration><![CDATA[METHOD PUBLIC CopyArrayString : BOOL
+VAR_IN_OUT CONSTANT
+  	pDoc : STRING; 
+END_VAR
+VAR_INPUT
+	nDoc : UDINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CopyArrayString := buffer.copyjson(v:= _Array, pDoc:= pDoc,nDoc := nDoc) <> 0;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Count" Id="{f42a646f-d940-4f66-a7bd-a47e4ecea4e2}">
+      <Declaration><![CDATA[PROPERTY PUBLIC Count : UDINT]]></Declaration>
+      <Get Name="Get" Id="{149457ae-80b3-4635-a3b8-88e24670a51e}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Count := buffer.GetArraySize(_array);]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="FirstIndex" Id="{55c40de4-846e-428e-b3aa-c73de79c1c96}">
+      <Declaration><![CDATA[PROPERTY PUBLIC FirstIndex : UDINT]]></Declaration>
+      <Get Name="Get" Id="{18fb2041-4f7b-4240-9ccc-c025450abd0e}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[FirstIndex := 0;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="LastIndex" Id="{30f8dfcb-e115-4d0d-8f6c-04af3ae62b68}">
+      <Declaration><![CDATA[PROPERTY PUBLIC LastIndex : UDINT]]></Declaration>
+      <Get Name="Get" Id="{e61528ec-832e-4578-9bf1-bb056e838a31}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF Count = 0 THEN
+	LastIndex := 0;
+ELSE 
+	LastIndex := Count - 1;
+END_IF]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="RemoveFirst" Id="{0a80c3ff-b7a1-4969-bb74-e74b4347884d}">
+      <Declaration><![CDATA[METHOD PUBLIC RemoveFirst : BOOL
+VAR
+	_arrayElement : SJsonAIterator;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[RemoveFirst := TryDeleteIndex(0);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="RemoveLast" Id="{d97db563-80d9-45c9-8257-4ba1366d4144}">
+      <Declaration><![CDATA[METHOD PUBLIC RemoveLast: BOOL
+VAR
+	_arrayElement : SJsonAIterator;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[RemoveLast := TryDeleteIndex(LastIndex);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="TryDeleteIndex" Id="{12575d30-50d7-482a-88fc-387d34512a5b}">
+      <Declaration><![CDATA[METHOD PUBLIC TryDeleteIndex : BOOL
+VAR_INPUT
+	Index : UDINT;
+END_VAR
+VAR
+	_arrayElement : SJsonAIterator;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[_arrayElement := buffer.GetArrayValueByIdx(_Array, Index);
+IF _arrayElement <> 0 THEN
+	TryDeleteIndex := buffer.RemoveArray(v := _array,i := _arrayElement);
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="TryGetIndex" Id="{b22fb237-c6a8-4be5-84f7-53ac05df9f3c}">
+      <Declaration><![CDATA[METHOD PUBLIC TryGetIndex : BOOL;
+VAR_INPUT
+	Index : UDINT;
+	Destination : ANY;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[	TryGetIndex := buffer.GetHexBinary(v:=  buffer.GetArrayValueByIdx(_Array, Index),p := Destination.pValue, n:= Destination.diSize) <> 0;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="TryGetIndexTo" Id="{ba1d405c-bcf2-4886-8698-5263a214e9ed}">
+      <Declaration><![CDATA[METHOD PUBLIC TryGetIndexTo : BOOL;
+VAR_INPUT
+	Index : UDINT;
+	Destination : PVOID;
+	DestinationSize : UDINT;
+END_VAR
+VAR
+	_arrayElement : SJsonAIterator;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[_arrayElement := buffer.GetArrayValueByIdx(_Array, Index);
+IF _arrayElement <> 0 THEN
+	TryGetIndexTo := buffer.GetHexBinary(v:= _arrayElement,p := Destination, n:= TO_DINT(DestinationSize)) <> 0;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="TrySetIndex" Id="{71be93ee-6a3b-4412-96aa-3d02a5c18350}">
+      <Declaration><![CDATA[METHOD PUBLIC TrySetIndex : BOOL
+VAR_INPUT
+	Index : UDINT;
+	Value : ANY;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TrySetIndex := buffer.SetHexBinary(v:= buffer.GetArrayValueByIdx(_Array, Index),p := Value.pValue, n:= Value.diSize) <> 0;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="TrySetIndexTo" Id="{1ffc65df-fc66-4971-bf58-e9fa70b3ba82}">
+      <Declaration><![CDATA[METHOD PUBLIC TrySetIndexTo : BOOL
+VAR_INPUT
+	Index : UDINT;
+	Value : PVOID;
+	ValueSize : UDINT;
+END_VAR
+VAR
+	_arrayElement : SJsonAIterator;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[_arrayElement := buffer.GetArrayValueByIdx(_Array, Index);
+IF _arrayElement <> 0 THEN
+	TrySetIndexTo := buffer.SetHexBinary(v:= _arrayElement,p := Value, n:= TO_DINT(ValueSize)) <> 0;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>
