@@ -34,7 +34,10 @@ myDynamicArray.RemoveLast();
 VAR
   myValue: LREAL;
 END_VAR
-```
+
+
 myDynamicArray.TryGetIndex(1, myValue);
+```
+
 
 Similarly, you can create and use instances of FB_DynamicArrayBinary and FB_DynamicArrayOfLREAL
