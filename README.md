@@ -1,4 +1,4 @@
-# Dynamic Array Function Blocks for TwinCAT
+# Dynamic Array Function Blocks for TwinCAT (CONCEPT)
 
 This repository contains function blocks for implementing dynamic arrays in TwinCAT PLC projects. The dynamic arrays are indexable and while loops are not necessary. They support all data types and are type-safe with some effort. The blocks use Beckhoff's FB_JsonDomParser. FB_JsonDomParser was slightly faster than FB_JsonDynDomParser in most tests, but the difference was minimal. All function blocks were tested without problems. The router memory remains constant, as does the time required to access an index. Nevertheless, it should be noted that this is ONLY a CONCEPT and should not be adopted without further ado.
 
