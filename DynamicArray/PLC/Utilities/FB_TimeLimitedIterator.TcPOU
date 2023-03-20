@@ -1,0 +1,116 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="FB_TimeLimitedIterator" Id="{feae5c23-357d-4ed9-9d1c-32ca973aa0ad}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_TimeLimitedIterator
+VAR
+    nLocalTaskUsagePercent : BYTE; 
+    fbGetTickTime : GETCPUCOUNTER;
+    TaskIndex : DINT;
+    
+    nInterruptThreshold : UDINT;
+    nLocalCycleTime : UDINT;
+    nIterationStartTime : ULINT;
+    nIterationCurrentTime : ULINT;
+    nIterationElapsedTime : UDINT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="CheckInterationTimeExceeded" Id="{4a403e74-ab1f-4fc5-b865-65f6b1cbea9d}">
+      <Declaration><![CDATA[METHOD PUBLIC CheckInterationTimeExceeded : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbGetTickTime();
+
+nIterationCurrentTime := DWORD_TO_ULINT(fbGetTickTime.cpuCntLoDW) OR SHL(DWORD_TO_ULINT(fbGetTickTime.cpuCntHiDW), 32);
+nIterationElapsedTime := ULINT_TO_UDINT (THIS^.nIterationCurrentTime - THIS^.nIterationStartTime);
+
+CheckInterationTimeExceeded := nIterationElapsedTime >= nInterruptThreshold;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CurrentIterationTime" Id="{ef19bc0c-ce47-460f-8ce7-bd21e0fb92be}">
+      <Declaration><![CDATA[METHOD CurrentIterationTime : LTIME
+VAR
+    CurrentTime : ULINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbGetTickTime();
+
+CurrentTime := DWORD_TO_ULINT(fbGetTickTime.cpuCntLoDW) OR SHL(DWORD_TO_ULINT(fbGetTickTime.cpuCntHiDW), 32);
+
+CurrentIterationTime := ULINT_TO_LTIME (CurrentTime - THIS^.nIterationStartTime)*100;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetIterationStartTime" Id="{bc75f438-9ac1-4c8f-8351-10b88609b1b5}">
+      <Declaration><![CDATA[METHOD PUBLIC SetIterationStartTime : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF TaskIndex = 0 OR TaskIndex <> GETCURTASKINDEXEX() THEN
+    TaskIndex := GETCURTASKINDEXEX();
+    nLocalCycleTime := TwinCAT_SystemInfoVarList._TaskInfo[TaskIndex].CycleTime;
+    nInterruptThreshold:= (nLocalCycleTime * LIMIT(1, TaskUsagePercent, 100)) / 100;
+END_IF
+
+fbGetTickTime();
+nIterationStartTime := DWORD_TO_ULINT(fbGetTickTime.cpuCntLoDW) OR SHL(DWORD_TO_ULINT(fbGetTickTime.cpuCntHiDW), 32);]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="TaskUsagePercent" Id="{633a7f1c-83a3-4054-9f1b-4b2eca7b9f45}">
+      <Declaration><![CDATA[PROPERTY PUBLIC TaskUsagePercent : BYTE]]></Declaration>
+      <Get Name="Get" Id="{a67d344e-d5c5-4c4d-a203-83178ed08983}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[TaskUsagePercent := nLocalTaskUsagePercent;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{6c064c68-a590-4d59-8175-798da213a006}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF nLocalTaskUsagePercent <> TaskUsagePercent THEN
+    nLocalTaskUsagePercent := TaskUsagePercent;
+    
+    TaskIndex := GETCURTASKINDEXEX();
+	IF TaskIndex <> 0 THEN
+		nLocalCycleTime := TwinCAT_SystemInfoVarList._TaskInfo[TaskIndex].CycleTime;
+   	 	nInterruptThreshold:= (nLocalCycleTime * LIMIT(1, TaskUsagePercent, 100)) / 100;
+	END_IF
+END_IF]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <LineIds Name="FB_TimeLimitedIterator">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TimeLimitedIterator.CheckInterationTimeExceeded">
+      <LineId Id="3" Count="4" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TimeLimitedIterator.CurrentIterationTime">
+      <LineId Id="3" Count="3" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TimeLimitedIterator.SetIterationStartTime">
+      <LineId Id="3" Count="6" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TimeLimitedIterator.TaskUsagePercent.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_TimeLimitedIterator.TaskUsagePercent.Set">
+      <LineId Id="3" Count="3" />
+      <LineId Id="11" Count="1" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

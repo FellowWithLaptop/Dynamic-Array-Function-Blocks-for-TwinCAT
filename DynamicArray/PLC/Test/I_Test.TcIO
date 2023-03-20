@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <Itf Name="I_Test" Id="{7b14dc32-22c2-45b1-b8cf-53a2660d831e}">
+    <Declaration><![CDATA[INTERFACE I_Test
+]]></Declaration>
+    <Method Name="METH" Id="{1bb01736-e5ad-44f3-b967-38c3a2aa8d6e}">
+      <Declaration><![CDATA[METHOD METH : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="Name" Id="{a59f8df2-f783-416d-961e-de7f7cabf77d}">
+      <Declaration><![CDATA[PROPERTY Name : String]]></Declaration>
+      <Get Name="Get" Id="{625e534f-1f6e-4911-bae0-f327927d32dc}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+  </Itf>
+</TcPlcObject>

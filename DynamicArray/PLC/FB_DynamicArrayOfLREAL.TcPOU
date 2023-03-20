@@ -1,0 +1,167 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="FB_DynamicArrayOfLREAL" Id="{ebf24724-4612-46a8-8cdc-f13249909af4}" SpecialFunc="None">
+    <Declaration><![CDATA[{attribute 'no_explicit_call' := 'This FB is a CLASS and must be accessed using methods or properties'}
+{attribute 'enable_dynamic_creation'}
+//{attribute 'hide_all_locals'}
+FUNCTION_BLOCK FB_DynamicArrayOfLREAL
+VAR
+	buffer : FB_JsonDomParser;
+	root : sJsonValue;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Folder Name="Private" Id="{7a72a895-9b7e-4075-85b1-8890248cc693}" />
+    <Property Name="_Array" Id="{3788a386-b8a0-4ddc-9e99-5ddc70f1e40f}" FolderPath="Private\">
+      <Declaration><![CDATA[PROPERTY PRIVATE _Array : sJsonValue]]></Declaration>
+      <Get Name="Get" Id="{7fc147fd-6548-4819-80b0-4c2516beed43}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF root <> 0 THEN
+	_Array := root;
+ELSE
+	root := buffer.NewDocument();
+	_Array := buffer.SetArray(root,0);
+END_IF
+
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="AddLast" Id="{31713e8f-7edc-49a3-8ffb-b5d5bea623c8}">
+      <Declaration><![CDATA[METHOD PUBLIC AddLast : BOOL
+VAR_IN_OUT
+	Value : LREAL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[AddLast := buffer.PushbackDoubleValue(v:= _Array, Value) <> 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Clear" Id="{ec35813b-0062-4622-b687-ac935f36693d}">
+      <Declaration><![CDATA[METHOD PUBLIC Clear : BOOL
+VAR
+	_arrayElement : SJsonAIterator;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[_arrayElement := buffer.ArrayBegin(_array);
+IF _arrayElement <> 0 THEN
+	Clear := buffer.ClearArray(v := _array,i := _arrayElement);
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CopyArrayString" Id="{839fb1de-1c7c-49ea-908b-124851825a53}">
+      <Declaration><![CDATA[METHOD PUBLIC CopyArrayString : BOOL
+VAR_IN_OUT CONSTANT
+  	pDoc : STRING; 
+END_VAR
+VAR_INPUT
+	nDoc : UDINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CopyArrayString := buffer.copyjson(v:= _Array, pDoc:= pDoc,nDoc := nDoc) <> 0;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Count" Id="{624efaf4-940a-411a-ba0b-ea6fcbb425a0}">
+      <Declaration><![CDATA[PROPERTY PUBLIC Count : UDINT]]></Declaration>
+      <Get Name="Get" Id="{321bb1c8-2534-41b6-936f-8104ce1b4687}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Count := buffer.GetArraySize(_array);]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="FirstIndex" Id="{434da13a-ffc8-4709-ab33-6efab001ef45}">
+      <Declaration><![CDATA[PROPERTY PUBLIC FirstIndex : UDINT]]></Declaration>
+      <Get Name="Get" Id="{535a91e8-9138-4fe4-858c-4604c33bd049}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[FirstIndex := 0;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="LastIndex" Id="{7d873392-e487-4475-b90f-0976c401e968}">
+      <Declaration><![CDATA[PROPERTY PUBLIC LastIndex : UDINT]]></Declaration>
+      <Get Name="Get" Id="{bf529785-d9e0-444d-9101-ab47546a8281}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF Count = 0 THEN
+	LastIndex := 0;
+ELSE 
+	LastIndex := Count - 1;
+END_IF]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="RemoveFirst" Id="{71b667b0-e59c-44b7-815c-159f05453e17}">
+      <Declaration><![CDATA[METHOD PUBLIC RemoveFirst : BOOL
+VAR
+	_arrayElement : SJsonAIterator;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[RemoveFirst := TryDeleteIndex(0);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="RemoveLast" Id="{86669941-2f8b-4969-857d-96623596bd6f}">
+      <Declaration><![CDATA[METHOD PUBLIC RemoveLast: BOOL
+VAR
+	_arrayElement : SJsonAIterator;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[RemoveLast := TryDeleteIndex(LastIndex);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="TryDeleteIndex" Id="{ff975f21-3e61-4ecc-b5fb-cb6a42c35c34}">
+      <Declaration><![CDATA[METHOD PUBLIC TryDeleteIndex : BOOL
+VAR_INPUT
+	Index : UDINT;
+END_VAR
+VAR
+	_arrayElement : SJsonAIterator;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[_arrayElement := buffer.GetArrayValueByIdx(_Array, Index);
+IF _arrayElement <> 0 THEN
+	TryDeleteIndex := buffer.RemoveArray(v := _array,i := _arrayElement);
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="TryGetIndex" Id="{72daf367-4658-458b-bfae-b5724022a5ff}">
+      <Declaration><![CDATA[METHOD PUBLIC TryGetIndex : BOOL;
+VAR_INPUT
+	Index : UDINT;	
+END_VAR
+VAR_IN_OUT
+	Destination : LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[Destination := buffer.GetDouble(v:= buffer.GetArrayValueByIdx(_Array, Index));
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="TrySetIndex" Id="{0baf6dfb-f78c-443c-926b-7af1af08e01f}">
+      <Declaration><![CDATA[METHOD PUBLIC TrySetIndex : BOOL
+VAR_INPUT
+	Index : UDINT;
+END_VAR
+VAR_IN_OUT
+	Value : LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TrySetIndex := buffer.SetDouble(v:= buffer.GetArrayValueByIdx(_Array, Index),Value) <> 0;
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

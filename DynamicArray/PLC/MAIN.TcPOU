@@ -1,0 +1,199 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="MAIN" Id="{9aa8de38-8cfd-4662-b593-1a981bd1a9f5}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+	aArray : FB_DynamicArrayBase64;
+	bRemoveLast: BOOL;
+	bRemoveFirst : BOOL;
+	bRemoveIndex : BOOL;
+	
+	bAddTest : BOOL;
+	bAddTestLoop : BOOL;
+	bClear : BOOL;
+	
+	bSetIndex : BOOL;
+END_VAR
+VAR
+	//=============================
+	// Remove Index Test
+	RemoveIndex : UDINT;
+	
+	//=============================
+	// Set Inex Test
+	nSetIndex : UDINT;
+	//=============================
+	// Add Test
+	WriteBool : BOOL;
+	WriteReal : LREAL;
+	WriteString : STRING;
+	
+	iTest : I_Test;
+	fbTest : FB_Test;
+	
+	//=============================
+	// Add Test Loop
+	nAddTest : INT := 1000;
+	i : INT;
+	sTest : STRING(32766);
+	
+	ArrayElements : UDINT;
+	
+	
+	//==================================================
+	//Get
+	ReadBOOL : BOOL;
+	ReadReal : LREAL;
+	ReadString : STRING;
+	ReadInterface : I_Test;
+	
+	bReadBOOL : BOOL;
+	bReadREAL : BOOL;
+	bReadString : BOOL;
+	bReadInterface : BOOL;
+	ReadIndex : UDINT;
+	//==================================================
+	//Time
+	fbTimeLimitedIterator : FB_TimeLimitedIterator := (TaskUsagePercent := 100);
+	ReadTime : LTIME;
+	
+	aTime : ARRAY[0..100000] OF LINT;
+	aLREAL : FB_DynamicArrayOfINT;
+	nTestLoop : UDINT := 10000;
+	f : UDINT;
+	fReadWrite : LINT;
+	
+	tTimeWriteArray : LTIME;
+	tTimeReadArray : LTIME;
+	
+	tTimeAddDynamicArray : LTIME;
+	tTimeWriteDynamicArray : LTIME;
+	tTimeReadDynamicArray : LTIME;
+	
+	WriteFaktor : LREAL;
+	ReadFaktor : LREAL;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[ArrayElements := aArray.Count;
+iTest := fbTest;
+
+//=============================
+// Add Test
+IF bAddTest THEN
+	bAddTest := FALSE;	
+	aArray.AddLast(WriteBool);
+	aArray.AddLast(WriteReal);
+	aArray.AddStringLast(WriteString);
+	aArray.AddLast(iTest);
+END_IF
+
+//=============================
+// Add Test
+IF bSetIndex THEN
+	bSetIndex := FALSE;	
+	aArray.TrySetIndex(nSetIndex, WriteBool);
+
+END_IF
+//=============================
+// Add Test Loop
+	IF bAddTestLoop THEN
+		bAddTestLoop := FALSE;
+		IF nAddTest > 0 THEN
+			FOR i := 0 TO nAddTest - 1 DO
+				aArray.AddLast(WriteBool);
+				aArray.AddLast(WriteReal);
+				aArray.AddStringLast(WriteString);
+				aArray.AddLast(iTest);
+			END_FOR
+		END_IF
+	END_IF
+
+//=============================
+// Clear
+	IF bClear THEN
+		bClear := FALSE;
+		aArray.Clear();
+	END_IF
+
+//=============================
+// Remove
+	IF bRemoveLast THEN
+		bRemoveLast := FALSE;
+		aArray.RemoveLast();
+	END_IF
+	IF bRemoveFirst THEN
+		bRemoveFirst := FALSE;
+		aArray.RemoveFirst();
+	END_IF
+	IF bRemoveIndex THEN
+		bRemoveIndex := FALSE;
+		aArray.TryDeleteIndex(RemoveIndex);
+	END_IF
+	
+//==================================================
+//Get
+
+	fbTimeLimitedIterator.SetIterationStartTime();
+	
+	bReadBOOL := aArray.TryGetIndex(ReadIndex,ReadBool);
+	bReadREAL := aArray.TryGetIndex(ReadIndex,ReadReal);
+	bReadString := aArray.TryGetIndex(ReadIndex,ReadString);
+	bReadInterface := aArray.TryGetIndex(ReadIndex, ReadInterface);
+	
+	ReadTime := fbTimeLimitedIterator.CurrentIterationTime();
+
+//==========================================================
+// Debug String
+	aArray.CopyArrayString(pDoc:= sTest, nDoc := SIZEOF(sTest));
+	
+//==========================================================
+// Timing Test
+	nTestLoop := LIMIT(0,nTestLoop ,100000);
+	
+	fbTimeLimitedIterator.SetIterationStartTime();
+		FOR f := 0 TO nTestLoop DO
+			aTime[f] := fReadWrite;
+		END_FOR
+	tTimeWriteArray := fbTimeLimitedIterator.CurrentIterationTime();
+	
+	
+	fbTimeLimitedIterator.SetIterationStartTime();
+		FOR f := 0 TO nTestLoop DO
+			fReadWrite := aTime[f];
+		END_FOR
+	tTimeReadArray := fbTimeLimitedIterator.CurrentIterationTime();
+	
+
+	
+	aLREAL.Clear();
+	
+	fbTimeLimitedIterator.SetIterationStartTime();
+		FOR f := 0 TO nTestLoop DO
+			aLREAL.AddLast(fReadWrite);
+		END_FOR
+	tTimeAddDynamicArray := fbTimeLimitedIterator.CurrentIterationTime();
+	
+	fbTimeLimitedIterator.SetIterationStartTime();
+		FOR f := 0 TO nTestLoop DO
+			aLREAL.TrySetIndex(f,fReadWrite);
+		END_FOR
+	tTimeWriteDynamicArray := fbTimeLimitedIterator.CurrentIterationTime();
+	
+	fbTimeLimitedIterator.SetIterationStartTime();
+		FOR f := 0 TO nTestLoop DO
+			aLREAL.TryGetIndex(f,fReadWrite);
+		END_FOR
+	tTimeReadDynamicArray := fbTimeLimitedIterator.CurrentIterationTime();
+
+	
+	
+	IF tTimeReadArray <> LTIME#0S THEN
+		ReadFaktor := TO_LREAL(TO_LREAL(tTimeReadDynamicArray*10000)/TO_LREAL(tTimeReadArray*10000));
+	END_IF
+	IF tTimeWriteArray <> LTIME#0S THEN
+		WriteFaktor := TO_LREAL(TO_LREAL(tTimeWriteDynamicArray*10000)/TO_LREAL( tTimeWriteArray*10000));
+	END_IF
+	 ]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>
