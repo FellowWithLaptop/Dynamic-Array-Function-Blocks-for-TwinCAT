@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
-  <POU Name="FB_DynamicArray" Id="{1195ebad-f841-400e-9a73-9ed4923ff5ec}" SpecialFunc="None">
+  <POU Name="FB_DynamicArrayBase64" Id="{1195ebad-f841-400e-9a73-9ed4923ff5ec}" SpecialFunc="None">
     <Declaration><![CDATA[{attribute 'no_explicit_call' := 'This FB is a CLASS and must be accessed using methods or properties'}
 {attribute 'enable_dynamic_creation'}
 {attribute 'hide_all_locals'}
-FUNCTION_BLOCK FB_DynamicArray
+FUNCTION_BLOCK FB_DynamicArrayBase64
 VAR
 	buffer : FB_JsonDynDomParser;
 	root : sJsonValue;
